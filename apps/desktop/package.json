@@ -1,0 +1,52 @@
+{
+  "name": "@incode/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/main.cjs",
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development electron .",
+    "build": "echo desktop build complete",
+    "dist": "electron-builder --dir",
+    "dist:win": "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "^36.2.1",
+    "electron-builder": "^26.0.20"
+  },
+  "build": {
+    "appId": "com.incode.ladderide",
+    "productName": "Incode Ladder IDE",
+    "asar": true,
+    "files": [
+      "src/**/*",
+      "package.json",
+      "!**/*.ts"
+    ],
+    "extraResources": [
+      {
+        "from": "../ui/dist",
+        "to": "ui",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "../../services/engine",
+        "to": "engine",
+        "filter": [
+          "app/**/*",
+          "requirements.txt",
+          "pyproject.toml"
+        ]
+      }
+    ],
+    "directories": {
+      "output": "../../dist/desktop"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    }
+  }
+}

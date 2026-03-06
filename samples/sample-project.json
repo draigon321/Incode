@@ -1,0 +1,49 @@
+{
+  "version": "ladder-ir/v0",
+  "id": "sample-project",
+  "name": "Sample Ladder",
+  "tags": [
+    {"id": "t-start", "name": "StartPB", "dataType": "BOOL"},
+    {"id": "t-stop", "name": "StopPB", "dataType": "BOOL"},
+    {"id": "t-mode", "name": "AutoMode", "dataType": "BOOL"},
+    {"id": "t-speed", "name": "SpeedCmd", "dataType": "DINT"},
+    {"id": "t-motor", "name": "MotorRun", "dataType": "BOOL"},
+    {"id": "t-timer", "name": "MotorDelay", "dataType": "TIMER"}
+  ],
+  "routines": [
+    {
+      "id": "routine-main",
+      "name": "MainRoutine",
+      "rungs": [
+        {
+          "id": "r-1",
+          "number": 1,
+          "comment": "Series + parallel + compare driving coil",
+          "network": {
+            "type": "series",
+            "nodes": [
+              {"type": "contact", "op": "XIC", "tag": "StartPB"},
+              {
+                "type": "parallel",
+                "branches": [
+                  {"type": "contact", "op": "XIO", "tag": "StopPB"},
+                  {"type": "contact", "op": "XIC", "tag": "AutoMode"}
+                ]
+              },
+              {
+                "type": "compare",
+                "op": "GRT",
+                "a": {"kind": "tag", "tag": "SpeedCmd"},
+                "b": {"kind": "const", "value": 10}
+              }
+            ]
+          },
+          "actions": [
+            {"type": "coil", "op": "OTE", "tag": "MotorRun"},
+            {"type": "timer", "op": "TON", "tag": "MotorDelay", "ptMs": 1500}
+          ]
+        }
+      ]
+    }
+  ]
+}
