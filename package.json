@@ -8,8 +8,10 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently -k \"pnpm dev:ui\" \"pnpm dev:desktop\"",
-    "dev:engine": "cd services/engine && .venv/Scripts/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 || cd services/engine && .venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 || cd services/engine && python -m uvicorn app.main:app --host 127.0.0.1 --port 8000",
+    "dev": "node scripts/dev.mjs",
+    "dev:desktop-stack": "concurrently -k \"pnpm dev:ui\" \"pnpm dev:desktop\"",
+    "dev:web": "concurrently -k \"pnpm dev:engine\" \"cross-env VITE_ENGINE_PORT=8000 pnpm dev:ui\"",
+    "dev:engine": "node scripts/run-engine.mjs",
     "dev:ui": "pnpm --filter @incode/ui dev",
     "dev:desktop": "wait-on tcp:127.0.0.1:5173 && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 pnpm --filter @incode/desktop dev",
     "build:ui": "pnpm --filter @incode/ui build",

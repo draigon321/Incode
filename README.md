@@ -51,13 +51,29 @@ Run these each time you set up on a new machine:
 - `pnpm dev`
 
 ## Daily pnpm Commands
-- `pnpm dev` (UI + Electron; Electron launches engine on a dynamic localhost port)
+- `pnpm dev` (auto mode: in Codespaces runs web mode; on desktop runs Electron mode)
+- `pnpm dev:web` (engine + UI only, browser-based; best for Codespaces)
+- `pnpm dev:desktop-stack` (UI + Electron; Electron launches engine on a dynamic localhost port)
 - `pnpm dev:ui` (run Vite UI only)
 - `pnpm dev:desktop` (run Electron only; expects UI dev server)
+- `pnpm dev:engine` (run FastAPI engine on `127.0.0.1:8000`)
 - `pnpm build:all`
 - `pnpm typecheck`
 - `pnpm dist` (unpacked artifact for current platform)
 - `pnpm --filter @incode/desktop dist:win` (Windows NSIS target, run on Windows host)
+
+## Codespaces Note
+- Electron desktop windows do not render in browser-only Codespaces sessions.
+- Use `pnpm dev` (auto-detect) or `pnpm dev:web`.
+- Open forwarded port `5173` for UI.
+- Engine stays on port `8000` in web mode.
+
+## Troubleshooting
+- If you see `Error forwarding port` in browser preview:
+  - Stop dev servers and run `pnpm dev` again.
+  - In Codespaces `Ports` tab, confirm port `5173` is running and open.
+  - Use `pnpm dev:web` explicitly if you do not need Electron.
+- If Electron fails in Codespaces, this is expected (no desktop GUI). Use web mode.
 
 ## Previous Windows 11 Setup (Detailed)
 1. Install Node.js 20+ and pnpm.
