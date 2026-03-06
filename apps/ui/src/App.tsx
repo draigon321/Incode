@@ -12,7 +12,9 @@ type Finding = {
   locations: Array<{ routineId: string; rungId: string; detail: string }>;
 };
 
-type XrefMap = Record<string, Array<{ routineId: string; rungId: string; detail: string }> >;
+type XrefMap = Record<string, Array<{ routineId: string; rungId: string; detail: string }>>;
+
+const TOOLBOX_ITEMS = ['XIC', 'XIO', 'OTE', 'TON', 'MOV', 'ADD', 'EQU', 'LEQ', 'OR'];
 
 function totalRefs(map: XrefMap | undefined): number {
   if (!map) {
@@ -99,7 +101,7 @@ export default function App() {
               setXrefWrites(data.payload.writes ?? {});
             }
           } catch {
-            // keep raw log if message is not JSON
+            // Keep raw line in log.
           }
         };
       })
@@ -238,100 +240,149 @@ export default function App() {
   }
 
   return (
-    <div className="app-root">
-      <header>
-        <h1>Incode Ladder IDE</h1>
-        <div>Engine: {enginePort ?? 'unknown'} | Health: {health}</div>
+    <div className="ide-app">
+      <header className="top-bar">
+        <div>
+          <h1>Incode Ladder IDE</h1>
+          <p>Deterministic scan-engine editor with AI copiloting layer</p>
+        </div>
+        <div className={`status-chip ${engineOnline ? 'ok' : 'warn'}`}>
+          Engine {enginePort ?? 'unknown'} | {health}
+        </div>
       </header>
 
-      <div className="toolbar panel">
-        <button onClick={createNewProject} disabled={!engineOnline}>
-          Create New Project
-        </button>
-        <button onClick={loadSampleProject} disabled={!engineOnline}>
-          Load Sample Project
-        </button>
-        <button onClick={applySamplePatch} disabled={!projectId || !engineOnline}>
-          Apply Sample Patch
-        </button>
-        <button onClick={exitApplication}>{isDesktopMode ? 'Exit' : 'Shutdown Engine'}</button>
-        <div>Project ID: {projectId || '(none)'}</div>
-        <div>Tags: {project?.tags.length ?? 0}</div>
-        <div>Rungs: {project?.routines.reduce((sum, routine) => sum + routine.rungs.length, 0) ?? 0}</div>
-        <div>Xref reads: {totalRefs(xrefReads)} | writes: {totalRefs(xrefWrites)}</div>
-      </div>
-
-      <div className="main-grid">
-        <div>
-          {project ? (
-            <LadderRenderer
-              project={project}
-              highlightedRungId={highlightedRungId}
-              onSelect={async (nextSelection) => {
-                setSelection(nextSelection);
-                if (projectId && (!xrefReads || !xrefWrites)) {
-                  const xrefResponse = await api(`/project/${projectId}/xref/build`, { method: 'POST' });
-                  setXrefReads(xrefResponse.reads);
-                  setXrefWrites(xrefResponse.writes);
-                }
-                if (projectId && findings.length === 0) {
-                  const lintResponse = await api(`/project/${projectId}/lint/run`, { method: 'POST' });
-                  setFindings(lintResponse.findings);
-                }
-              }}
-            />
-          ) : (
-            <div className="panel">No project loaded.</div>
-          )}
-
-          <div className="panel">
-            <h2>WS Events</h2>
-            <pre>{wsLog.join('\n')}</pre>
-          </div>
-
-          <div className="panel">
-            <h2>Lint Findings</h2>
-            {findings.length === 0 ? <div>No findings</div> : null}
-            {findings.map((finding, idx) => (
-              <div key={`${finding.id}-${idx}`} className="finding">
-                <strong>{finding.id}</strong> [{finding.severity}] {finding.message}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <aside className="panel">
-          <h2>Selection</h2>
-          {selection ? (
-            <>
-              <div>Detail: {selection.detail}</div>
-              <div>Routine: {selection.routineId}</div>
-              <div>Rung: {selection.rungId}</div>
-              <div>Tag: {selection.tag ?? '(none)'}</div>
-              <h3>Reads</h3>
-              {selectedTagReads.map((loc, idx) => (
-                <button
-                  key={`read-${idx}`}
-                  className="jump-btn"
-                  onClick={() => setHighlightedRungId(loc.rungId)}
-                >
-                  {loc.routineId} / {loc.rungId} ({loc.detail})
+      <div className="ide-grid">
+        <aside className="left-rail">
+          <section className="rail-card">
+            <h3>Elements</h3>
+            <p className="muted">Click to add to canvas (drag/drop next milestone)</p>
+            <div className="toolbox-list">
+              {TOOLBOX_ITEMS.map((item) => (
+                <button key={item} className="tool-item" disabled>
+                  {item}
                 </button>
               ))}
-              <h3>Writes</h3>
-              {selectedTagWrites.map((loc, idx) => (
-                <button
-                  key={`write-${idx}`}
-                  className="jump-btn"
-                  onClick={() => setHighlightedRungId(loc.rungId)}
-                >
-                  {loc.routineId} / {loc.rungId} ({loc.detail})
-                </button>
+            </div>
+          </section>
+
+          <section className="rail-card">
+            <h3>Programs + Tags</h3>
+            <div className="tag-list">
+              <div className="tag-row tag-head">MainRoutine</div>
+              {(project?.tags ?? []).map((tag) => (
+                <div key={tag.id} className="tag-row">
+                  <span>{tag.name}</span>
+                  <small>{tag.dataType}</small>
+                </div>
               ))}
-            </>
-          ) : (
-            <div>Select a node/action in the ladder.</div>
-          )}
+              {!project?.tags.length ? <div className="tag-empty">No tags loaded</div> : null}
+            </div>
+          </section>
+        </aside>
+
+        <main className="editor-shell">
+          <section className="editor-controls">
+            <div className="control-group">
+              <button onClick={createNewProject} disabled={!engineOnline}>
+                Create New Project
+              </button>
+              <button onClick={loadSampleProject} disabled={!engineOnline}>
+                Load Sample Project
+              </button>
+              <button onClick={applySamplePatch} disabled={!projectId || !engineOnline}>
+                Apply Sample Patch
+              </button>
+              <button onClick={exitApplication}>{isDesktopMode ? 'Exit' : 'Shutdown Engine'}</button>
+            </div>
+            <div className="stats-line">
+              <span>Project: {projectId || '(none)'}</span>
+              <span>Tags: {project?.tags.length ?? 0}</span>
+              <span>Rungs: {project?.routines.reduce((sum, routine) => sum + routine.rungs.length, 0) ?? 0}</span>
+              <span>
+                Xref R/W: {totalRefs(xrefReads)} / {totalRefs(xrefWrites)}
+              </span>
+            </div>
+          </section>
+
+          <section className="editor-canvas">
+            {project ? (
+              <LadderRenderer
+                project={project}
+                highlightedRungId={highlightedRungId}
+                onSelect={async (nextSelection) => {
+                  setSelection(nextSelection);
+                  if (projectId && (!xrefReads || !xrefWrites)) {
+                    const xrefResponse = await api(`/project/${projectId}/xref/build`, { method: 'POST' });
+                    setXrefReads(xrefResponse.reads);
+                    setXrefWrites(xrefResponse.writes);
+                  }
+                  if (projectId && findings.length === 0) {
+                    const lintResponse = await api(`/project/${projectId}/lint/run`, { method: 'POST' });
+                    setFindings(lintResponse.findings);
+                  }
+                }}
+              />
+            ) : (
+              <div className="panel-placeholder">Load or create a project to render ladder logic.</div>
+            )}
+          </section>
+
+          <section className="runtime-grid">
+            <div className="runtime-card">
+              <h3>WS Events</h3>
+              <pre>{wsLog.join('\n')}</pre>
+            </div>
+            <div className="runtime-card">
+              <h3>Lint Findings</h3>
+              {findings.length === 0 ? <div className="muted">No findings</div> : null}
+              {findings.map((finding, idx) => (
+                <div key={`${finding.id}-${idx}`} className="finding">
+                  <strong>{finding.id}</strong> [{finding.severity}] {finding.message}
+                </div>
+              ))}
+            </div>
+          </section>
+        </main>
+
+        <aside className="right-rail">
+          <section className="copilot-card">
+            <h3>AI Copilot</h3>
+            <p className="muted">Describe rung behavior. Suggestions and refactors in next milestone.</p>
+            <textarea placeholder="Describe your ladder logic..." disabled />
+            <button disabled>Generate Logic</button>
+            <div className="copilot-actions">
+              <button disabled>Explain This Rung</button>
+              <button disabled>Refactor This Rung</button>
+              <button disabled>Generate Tests</button>
+              <button disabled>Find Writers</button>
+            </div>
+          </section>
+
+          <section className="selection-card">
+            <h3>Selection</h3>
+            {selection ? (
+              <>
+                <div>Detail: {selection.detail}</div>
+                <div>Routine: {selection.routineId}</div>
+                <div>Rung: {selection.rungId}</div>
+                <div>Tag: {selection.tag ?? '(none)'}</div>
+                <h4>Reads</h4>
+                {selectedTagReads.map((loc, idx) => (
+                  <button key={`read-${idx}`} className="jump-btn" onClick={() => setHighlightedRungId(loc.rungId)}>
+                    {loc.routineId} / {loc.rungId} ({loc.detail})
+                  </button>
+                ))}
+                <h4>Writes</h4>
+                {selectedTagWrites.map((loc, idx) => (
+                  <button key={`write-${idx}`} className="jump-btn" onClick={() => setHighlightedRungId(loc.rungId)}>
+                    {loc.routineId} / {loc.rungId} ({loc.detail})
+                  </button>
+                ))}
+              </>
+            ) : (
+              <p className="muted">Select a node/action in the ladder.</p>
+            )}
+          </section>
         </aside>
       </div>
     </div>
