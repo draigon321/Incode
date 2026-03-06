@@ -23,6 +23,7 @@ Desktop-first deterministic ladder logic IDE scaffold with an AI copiloting laye
    - `.venv\\Scripts\\pip install -r requirements.txt`
 4. Install JS deps at repo root:
    - `pnpm install`
+   - If prompted about ignored build scripts, run `pnpm approve-builds` and approve `electron`, `electron-winstaller`, and `esbuild`.
 5. Run dev stack:
    - `pnpm dev`
 
