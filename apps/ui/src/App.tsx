@@ -32,6 +32,8 @@ export default function App() {
   const [xrefWrites, setXrefWrites] = useState<XrefMap>();
   const [selection, setSelection] = useState<Selection | null>(null);
   const [highlightedRungId, setHighlightedRungId] = useState<string>('');
+  const isDesktopMode = Boolean(window.appControl?.quit);
+  const engineOnline = health === 'ok';
 
   const selectedTagReads = useMemo(() => {
     if (!selection?.tag || !xrefReads) {
@@ -111,6 +113,9 @@ export default function App() {
   }, []);
 
   async function createNewProject() {
+    if (!engineOnline) {
+      return;
+    }
     const response = await api('/project/new', { method: 'POST' });
     setProjectId(response.projectId);
     setProject(response.project);
@@ -118,7 +123,7 @@ export default function App() {
   }
 
   async function applySamplePatch() {
-    if (!projectId) {
+    if (!projectId || !engineOnline) {
       return;
     }
 
@@ -180,6 +185,9 @@ export default function App() {
   }
 
   async function loadSampleProject() {
+    if (!engineOnline) {
+      return;
+    }
     const response = await api('/project/new', { method: 'POST' });
     const newProjectId = response.projectId as string;
     setProjectId(newProjectId);
@@ -220,8 +228,10 @@ export default function App() {
 
     try {
       await api('/admin/shutdown', { method: 'POST' });
-      setHealth('shutting_down');
-      setWsLog((prev) => [`${new Date().toISOString()} Engine shutdown requested`, ...prev].slice(0, 25));
+      setHealth('stopped (restart pnpm dev)');
+      setWsLog((prev) =>
+        [`${new Date().toISOString()} Engine stopped. Restart with: pnpm dev`, ...prev].slice(0, 25),
+      );
     } catch (error) {
       setHealth(`shutdown_error: ${String(error)}`);
     }
@@ -235,12 +245,16 @@ export default function App() {
       </header>
 
       <div className="toolbar panel">
-        <button onClick={createNewProject}>Create New Project</button>
-        <button onClick={loadSampleProject}>Load Sample Project</button>
-        <button onClick={applySamplePatch} disabled={!projectId}>
+        <button onClick={createNewProject} disabled={!engineOnline}>
+          Create New Project
+        </button>
+        <button onClick={loadSampleProject} disabled={!engineOnline}>
+          Load Sample Project
+        </button>
+        <button onClick={applySamplePatch} disabled={!projectId || !engineOnline}>
           Apply Sample Patch
         </button>
-        <button onClick={exitApplication}>Exit</button>
+        <button onClick={exitApplication}>{isDesktopMode ? 'Exit' : 'Shutdown Engine'}</button>
         <div>Project ID: {projectId || '(none)'}</div>
         <div>Tags: {project?.tags.length ?? 0}</div>
         <div>Rungs: {project?.routines.reduce((sum, routine) => sum + routine.rungs.length, 0) ?? 0}</div>

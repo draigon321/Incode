@@ -69,7 +69,8 @@ Run these each time you set up on a new machine:
 - Engine stays on port `8000` in web mode.
 - UI includes an `Exit` button:
   - Electron mode: quits app and backend.
-  - Web mode (Codespaces): shuts down backend (`/admin/shutdown`); terminal process will exit.
+  - Web mode (Codespaces): button is labeled `Shutdown Engine`; it stops backend (`/admin/shutdown`).
+  - After shutdown in web mode, restart with `pnpm dev`.
 
 ## Troubleshooting
 - If you see `Error forwarding port` in browser preview:
