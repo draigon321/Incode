@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Patch, Project } from '@incode/shared';
 import { LadderRenderer, type Selection } from './ladderRenderer';
-import { getEngineBaseUrl, getEnginePort } from './engine';
+import { getEngineBaseUrl, getEnginePort, getEngineWsUrl } from './engine';
 import './styles.css';
 
 type Finding = {
@@ -76,10 +76,12 @@ export default function App() {
     getEnginePort()
       .then(async (port) => {
         setEnginePort(port);
-        const healthPayload = await fetch(`http://127.0.0.1:${port}/health`).then((r) => r.json());
+        const baseUrl = await getEngineBaseUrl();
+        const healthPayload = await fetch(`${baseUrl}/health`).then((r) => r.json());
         setHealth(healthPayload.status);
 
-        ws = new WebSocket(`ws://127.0.0.1:${port}/ws/events`);
+        const wsUrl = await getEngineWsUrl();
+        ws = new WebSocket(wsUrl);
         ws.onmessage = (event) => {
           setWsLog((prev) => [`${new Date().toISOString()} ${event.data}`, ...prev].slice(0, 25));
           try {

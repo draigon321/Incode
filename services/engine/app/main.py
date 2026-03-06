@@ -6,6 +6,7 @@ import uuid
 from datetime import UTC, datetime
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import ValidationError
 
@@ -16,6 +17,13 @@ from .store import ProjectStore
 
 app = FastAPI(title='Incode Ladder Engine', version='0.1.0')
 store = ProjectStore()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
 
 
 class WSManager:
@@ -78,11 +86,18 @@ async def health() -> dict[str, str]:
 
 @app.get('/')
 async def root(request: Request) -> HTMLResponse:
-    host = request.headers.get('host', '')
+    forwarded_host = request.headers.get('x-forwarded-host', '')
+    host = forwarded_host or request.headers.get('host', '')
     ui_url = ''
+
     if '.app.github.dev' in host and '-8000.' in host:
         ui_host = host.replace('-8000.', '-5173.', 1)
         ui_url = f'https://{ui_host}'
+    elif os.getenv('CODESPACE_NAME') and os.getenv('GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN'):
+        ui_url = (
+            f"https://{os.environ['CODESPACE_NAME']}-5173."
+            f"{os.environ['GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN']}"
+        )
     ui_redirect_html = (
         f"<p>Redirecting to UI: <a href='{ui_url}'>{ui_url}</a></p>"
         if ui_url
