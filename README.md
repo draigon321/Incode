@@ -17,6 +17,51 @@ Desktop-first deterministic ladder logic IDE scaffold with an AI copiloting laye
 ## Windows 11 Dev Setup
 1. Install Node.js 20+ and pnpm.
 2. Install Python 3.11+.
+3. Clone repo and install JS deps at repo root:
+   - `pnpm install`
+   - If prompted about ignored build scripts, run `pnpm approve-builds` and approve `electron`, `electron-winstaller`, and `esbuild`.
+4. Create engine venv:
+   - `cd services/engine`
+   - `py -3.11 -m venv .venv`
+   - `.venv\\Scripts\\pip install -r requirements.txt`
+5. Return to repo root and run dev stack:
+   - `cd ../..`
+   - `pnpm dev`
+
+## Codespaces / Linux Setup
+1. Install JS deps:
+   - `pnpm install`
+2. Create engine venv:
+   - `cd services/engine`
+   - `python3 -m venv .venv`
+   - `. .venv/bin/activate`
+   - `pip install -r requirements.txt`
+3. Return to repo root and run:
+   - `cd ../..`
+   - `pnpm dev`
+
+## Fresh Machine Checklist (VS Code Desktop or New Codespace)
+Run these each time you set up on a new machine:
+- `pnpm install`
+- `cd services/engine && python3 -m venv .venv` (or `py -3.11 -m venv .venv` on Windows)
+- Install engine deps:
+  - Windows: `services/engine/.venv/Scripts/pip install -r services/engine/requirements.txt`
+  - Linux: `. services/engine/.venv/bin/activate && pip install -r services/engine/requirements.txt`
+- `pnpm typecheck`
+- `pnpm dev`
+
+## Daily pnpm Commands
+- `pnpm dev` (UI + Electron; Electron launches engine on a dynamic localhost port)
+- `pnpm dev:ui` (run Vite UI only)
+- `pnpm dev:desktop` (run Electron only; expects UI dev server)
+- `pnpm build:all`
+- `pnpm typecheck`
+- `pnpm dist` (unpacked artifact for current platform)
+- `pnpm --filter @incode/desktop dist:win` (Windows NSIS target, run on Windows host)
+
+## Previous Windows 11 Setup (Detailed)
+1. Install Node.js 20+ and pnpm.
+2. Install Python 3.11+.
 3. Create engine venv:
    - `cd services/engine`
    - `py -3.11 -m venv .venv`
