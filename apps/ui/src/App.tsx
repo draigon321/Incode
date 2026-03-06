@@ -210,6 +210,21 @@ export default function App() {
     await refreshProjectData(newProjectId);
   }
 
+  async function exitApplication() {
+    if (window.appControl?.quit) {
+      await window.appControl.quit();
+      return;
+    }
+
+    try {
+      await api('/admin/shutdown', { method: 'POST' });
+      setHealth('shutting_down');
+      setWsLog((prev) => [`${new Date().toISOString()} Engine shutdown requested`, ...prev].slice(0, 25));
+    } catch (error) {
+      setHealth(`shutdown_error: ${String(error)}`);
+    }
+  }
+
   return (
     <div className="app-root">
       <header>
@@ -223,6 +238,7 @@ export default function App() {
         <button onClick={applySamplePatch} disabled={!projectId}>
           Apply Sample Patch
         </button>
+        <button onClick={exitApplication}>Exit</button>
         <div>Project ID: {projectId || '(none)'}</div>
         <div>Tags: {project?.tags.length ?? 0}</div>
         <div>Rungs: {project?.routines.reduce((sum, routine) => sum + routine.rungs.length, 0) ?? 0}</div>

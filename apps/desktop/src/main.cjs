@@ -104,6 +104,9 @@ function createWindow() {
 }
 
 ipcMain.handle('engine:get-port', () => enginePort);
+ipcMain.handle('app:quit', () => {
+  app.quit();
+});
 
 app.whenReady().then(async () => {
   try {

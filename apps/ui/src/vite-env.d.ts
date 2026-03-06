@@ -5,6 +5,9 @@ declare global {
     engine?: {
       getEnginePort: () => Promise<number>;
     };
+    appControl?: {
+      quit: () => Promise<void>;
+    };
   }
 }
 

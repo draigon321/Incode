@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import uuid
 from datetime import UTC, datetime
 
-from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse
-from fastapi.responses import JSONResponse
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
+from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import ValidationError
 
 from .analysis import build_xref, run_lint
@@ -83,6 +83,11 @@ async def root(request: Request) -> HTMLResponse:
     if '.app.github.dev' in host and '-8000.' in host:
         ui_host = host.replace('-8000.', '-5173.', 1)
         ui_url = f'https://{ui_host}'
+    ui_redirect_html = (
+        f"<p>Redirecting to UI: <a href='{ui_url}'>{ui_url}</a></p>"
+        if ui_url
+        else "<p>Open the UI on port <code>5173</code>.</p>"
+    )
 
     html = f"""
 <!doctype html>
@@ -101,7 +106,7 @@ async def root(request: Request) -> HTMLResponse:
     <h1>Incode Ladder Engine</h1>
     <p>Status: <strong>ok</strong> | Version: <code>0.1.0</code></p>
     <p>This is the backend engine port (<code>8000</code>), not the UI port.</p>
-    {"<p>Redirecting to UI: <a href='" + ui_url + "'>" + ui_url + "</a></p>" if ui_url else "<p>Open the UI on port <code>5173</code>.</p>"}
+    {ui_redirect_html}
     <h2>Engine routes</h2>
     <ul>
       <li><code>/health</code></li>
@@ -204,3 +209,14 @@ async def lint_run(project_id: str) -> dict:
         raise HTTPException(status_code=404, detail='project_not_found')
     lint = run_lint(project)
     return {'findings': [f.model_dump(mode='json') for f in lint['findings']]}
+
+
+def _terminate_process() -> None:
+    os._exit(0)
+
+
+@app.post('/admin/shutdown')
+async def shutdown(background_tasks: BackgroundTasks) -> dict[str, str]:
+    # Defer termination so the caller receives an HTTP response first.
+    background_tasks.add_task(_terminate_process)
+    return {'status': 'shutting_down'}

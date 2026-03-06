@@ -67,6 +67,9 @@ Run these each time you set up on a new machine:
 - Use `pnpm dev` (auto-detect) or `pnpm dev:web`.
 - Open forwarded port `5173` for UI.
 - Engine stays on port `8000` in web mode.
+- UI includes an `Exit` button:
+  - Electron mode: quits app and backend.
+  - Web mode (Codespaces): shuts down backend (`/admin/shutdown`); terminal process will exit.
 
 ## Troubleshooting
 - If you see `Error forwarding port` in browser preview:
