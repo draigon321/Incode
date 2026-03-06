@@ -1,0 +1,35 @@
+{
+  "name": "incode-ladder-ide",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.23.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -k \"pnpm dev:ui\" \"pnpm dev:desktop\"",
+    "dev:engine": "cd services/engine && .venv/Scripts/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 || cd services/engine && .venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 || cd services/engine && python -m uvicorn app.main:app --host 127.0.0.1 --port 8000",
+    "dev:ui": "pnpm --filter @incode/ui dev",
+    "dev:desktop": "wait-on tcp:127.0.0.1:5173 && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 pnpm --filter @incode/desktop dev",
+    "build:ui": "pnpm --filter @incode/ui build",
+    "build:desktop": "pnpm --filter @incode/desktop build",
+    "build:all": "pnpm build:ui && pnpm build:desktop",
+    "dist": "pnpm build:ui && pnpm --filter @incode/desktop dist",
+    "typecheck": "pnpm --filter @incode/shared typecheck && pnpm --filter @incode/ui typecheck",
+    "lint": "eslint . --ext .ts,.tsx,.js,.cjs",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@types/node": "^24.8.1",
+    "@typescript-eslint/eslint-plugin": "^8.46.1",
+    "@typescript-eslint/parser": "^8.46.1",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "eslint": "^9.38.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3",
+    "wait-on": "^9.0.1"
+  }
+}

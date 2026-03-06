@@ -1,0 +1,88 @@
+:root {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #1b263b;
+  background: linear-gradient(180deg, #f8fbff 0%, #edf6ff 100%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.app-root {
+  padding: 16px;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 12px;
+}
+
+.panel {
+  background: #ffffff;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 12px;
+}
+
+.ladder-panel {
+  overflow: auto;
+}
+
+pre {
+  max-height: 180px;
+  overflow: auto;
+  background: #f1f5f9;
+  padding: 8px;
+}
+
+.finding {
+  border-left: 4px solid #d62828;
+  padding-left: 8px;
+  margin-bottom: 8px;
+}
+
+.jump-btn {
+  width: 100%;
+  text-align: left;
+  margin-bottom: 6px;
+}
+
+button {
+  border: 1px solid #7b8cde;
+  background: #eef2ff;
+  color: #1d3557;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+@media (max-width: 1000px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+}
