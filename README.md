@@ -67,6 +67,7 @@ Run these each time you set up on a new machine:
 - Use `pnpm dev` (auto-detect) or `pnpm dev:web`.
 - Open forwarded port `5173` for UI.
 - Engine stays on port `8000` in web mode.
+- In web mode, Vite proxies `/engine/*` to `127.0.0.1:8000` to avoid cross-origin/proxy hostname issues.
 - UI includes an `Exit` button:
   - Electron mode: quits app and backend.
   - Web mode (Codespaces): button is labeled `Shutdown Engine`; it stops backend (`/admin/shutdown`).

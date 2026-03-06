@@ -8,6 +8,10 @@ export async function getEnginePort(): Promise<number> {
 }
 
 export async function getEngineBaseUrl(): Promise<string> {
+  if (import.meta.env.VITE_USE_ENGINE_PROXY === '1') {
+    return '/engine';
+  }
+
   if (!window.engine?.getEnginePort) {
     const { hostname, protocol } = window.location;
     if (hostname.endsWith('.app.github.dev') && hostname.includes('-5173.')) {
@@ -20,6 +24,11 @@ export async function getEngineBaseUrl(): Promise<string> {
 }
 
 export async function getEngineWsUrl(): Promise<string> {
+  if (import.meta.env.VITE_USE_ENGINE_PROXY === '1') {
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${wsProtocol}//${window.location.host}/engine/ws/events`;
+  }
+
   if (!window.engine?.getEnginePort) {
     const { hostname, protocol } = window.location;
     if (hostname.endsWith('.app.github.dev') && hostname.includes('-5173.')) {
