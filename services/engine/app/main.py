@@ -75,6 +75,25 @@ async def health() -> dict[str, str]:
     return {'status': 'ok', 'version': '0.1.0'}
 
 
+@app.get('/')
+async def root() -> dict:
+    return {
+        'service': 'Incode Ladder Engine',
+        'status': 'ok',
+        'version': '0.1.0',
+        'routes': {
+            'health': '/health',
+            'eventsWs': '/ws/events',
+            'projectNew': '/project/new',
+            'projectGet': '/project/{project_id}',
+            'patchValidate': '/project/{project_id}/patch/validate',
+            'patchApply': '/project/{project_id}/patch/apply',
+            'xrefBuild': '/project/{project_id}/xref/build',
+            'lintRun': '/project/{project_id}/lint/run',
+        },
+    }
+
+
 @app.websocket('/ws/events')
 async def ws_events(websocket: WebSocket) -> None:
     await ws_manager.connect(websocket)
