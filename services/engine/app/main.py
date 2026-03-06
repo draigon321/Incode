@@ -4,7 +4,8 @@ import asyncio
 import uuid
 from datetime import UTC, datetime
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
+from fastapi.responses import HTMLResponse
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
@@ -76,22 +77,46 @@ async def health() -> dict[str, str]:
 
 
 @app.get('/')
-async def root() -> dict:
-    return {
-        'service': 'Incode Ladder Engine',
-        'status': 'ok',
-        'version': '0.1.0',
-        'routes': {
-            'health': '/health',
-            'eventsWs': '/ws/events',
-            'projectNew': '/project/new',
-            'projectGet': '/project/{project_id}',
-            'patchValidate': '/project/{project_id}/patch/validate',
-            'patchApply': '/project/{project_id}/patch/apply',
-            'xrefBuild': '/project/{project_id}/xref/build',
-            'lintRun': '/project/{project_id}/lint/run',
-        },
-    }
+async def root(request: Request) -> HTMLResponse:
+    host = request.headers.get('host', '')
+    ui_url = ''
+    if '.app.github.dev' in host and '-8000.' in host:
+        ui_host = host.replace('-8000.', '-5173.', 1)
+        ui_url = f'https://{ui_host}'
+
+    html = f"""
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Incode Ladder Engine</title>
+    {"<meta http-equiv='refresh' content='0; url=" + ui_url + "' />" if ui_url else ""}
+    <style>
+      body {{ font-family: Arial, sans-serif; margin: 2rem; color: #1f2937; }}
+      code {{ background: #f3f4f6; padding: 0.2rem 0.35rem; border-radius: 4px; }}
+    </style>
+  </head>
+  <body>
+    <h1>Incode Ladder Engine</h1>
+    <p>Status: <strong>ok</strong> | Version: <code>0.1.0</code></p>
+    <p>This is the backend engine port (<code>8000</code>), not the UI port.</p>
+    {"<p>Redirecting to UI: <a href='" + ui_url + "'>" + ui_url + "</a></p>" if ui_url else "<p>Open the UI on port <code>5173</code>.</p>"}
+    <h2>Engine routes</h2>
+    <ul>
+      <li><code>/health</code></li>
+      <li><code>/ws/events</code></li>
+      <li><code>/project/new</code></li>
+      <li><code>/project/{{project_id}}</code></li>
+      <li><code>/project/{{project_id}}/patch/validate</code></li>
+      <li><code>/project/{{project_id}}/patch/apply</code></li>
+      <li><code>/project/{{project_id}}/xref/build</code></li>
+      <li><code>/project/{{project_id}}/lint/run</code></li>
+    </ul>
+  </body>
+</html>
+"""
+    return HTMLResponse(content=html)
 
 
 @app.websocket('/ws/events')
